@@ -1,0 +1,188 @@
+<!-- pages/post-detail/post-detail.wxml -->
+<view class="container">
+  <block wx:if="{{isLoading}}">
+    <view class="loading-container">
+      <view class="loading-text">加载中...</view>
+    </view>
+  </block>
+  <block wx:elif="{{post}}">
+    <!-- Post Card -->
+    <view class="post-detail-card">
+      <view class="author-info">
+        <image wx:if="{{post.authorAvatar}}" class="author-avatar" src="{{post.authorAvatar}}" mode="aspectFill" binderror="onAvatarError"></image>
+        <text class="author-name">{{post.authorName}}</text>
+      </view>
+      <view class="post-title">{{post.title}}</view>
+      <view class="post-content" wx:if="{{post.content}}">{{post.content}}</view>
+      
+      <!-- 图片显示逻辑 (已修正) -->
+      <view wx:if="{{(post.imageUrl || (post.imageUrls && post.imageUrls.length > 0))}}" class="image-container" id="detail-image-container">
+        <!-- 单张图片 -->
+        <block wx:if="{{post.imageUrl && (!post.imageUrls || post.imageUrls.length <= 1)}}">
+          <swiper
+            class="image-swiper"
+            indicator-dots="{{false}}"
+            style="width: 100%; height: {{imageContainerHeight ? imageContainerHeight + 'px' : '220px'}};"
+          >
+            <swiper-item>
+              <image 
+                class="post-image" 
+                src="{{post.imageUrl}}" 
+                mode="aspectFit"
+                bindload="onImageLoad"
+                catch:tap="handlePreview"
+                data-type="single"
+                data-imgindex="0"
+                data-src="{{post.imageUrl}}"
+                data-original-image-urls="{{post.originalImageUrl || post.imageUrl}}"
+                style="width: 100%; height: 100%;"
+              ></image>
+            </swiper-item>
+          </swiper>
+        </block>
+        
+         <!-- 多张图片 (★ 此处为核心修改) -->
+         <block wx:elif="{{post.imageUrls && post.imageUrls.length > 1}}">
+          <swiper
+            class="image-swiper"
+            indicator-dots="{{true}}"
+            indicator-color="rgba(0, 0, 0, .2)"
+            indicator-active-color="#000000"
+            circular="true"
+            style="width: 100%; height: {{imageContainerHeight ? imageContainerHeight + 'px' : '220px'}};"
+          >
+            <swiper-item wx:for="{{post.imageUrls}}" wx:for-item="imageUrl" wx:key="*this" wx:for-index="imgindex">
+              <image
+                class="post-image"
+                src="{{imageUrl}}"
+                mode="aspectFit"
+                bindload="onImageLoad"
+                catch:tap="handlePreview"
+                data-type="multi"
+                data-imgindex="{{imgindex}}"
+                data-src="{{imageUrl}}"
+                data-original-image-urls="{{post.originalImageUrls || post.imageUrls}}"
+                style="width: 100%; height: 100%;"
+              ></image>
+            </swiper-item>
+          </swiper>
+          <!-- ★ 注意：之前在这里的自定义指示器 <view> 已经被删除了！ -->
+        </block>
+      </view>
+      
+      <view class="post-meta">
+        <text class="post-time">{{post.formattedCreateTime}}</text>
+      </view>
+      <view class="vote-section">
+        <view class="actions-left">
+          <view class="vote-count {{post.isVoted ? 'voted' : ''}}">👍 {{post.votes || 0}}</view>
+          <view class="comment-count">💬 {{commentCount}}</view>
+        </view>
+        <view class="button-group">
+          <button class="vote-button {{post.isVoted ? 'voted' : ''}}" size="mini" catch:tap="onVote" data-postid="{{post._id}}">
+            {{post.isVoted ? '已点赞' : '点赞'}}
+          </button>
+        </view>
+      </view>
+    </view>
+
+    <!-- Comment Section (已恢复完整内容) -->
+    <view class="comment-section">
+      <view class="section-title">共 {{commentCount}} 条评论</view>
+      <view class="comment-list">
+        <block wx:if="{{comments.length > 0}}">
+          <view wx:for="{{comments}}" wx:key="_id" class="comment-item">
+            <image class="comment-avatar" src="{{item.authorAvatar}}" mode="aspectFill" binderror="onAvatarError"></image>
+            <view class="comment-main">
+              <view class="comment-author">{{item.authorName}}</view>
+              <view class="comment-content">{{item.content}}</view>
+              <view class="comment-footer">
+                <view class="comment-time">{{item.formattedCreateTime}}</view>
+                <view class="comment-actions">
+                  <view class="like-section" bindtap="toggleLikeComment" data-comment-id="{{item._id}}" data-liked="{{item.liked}}">
+                    <image class="like-icon" src="{{item.liked ? '../../images/liked.png' : '../../images/like.png'}}"></image>
+                    <text class="like-count">{{item.likes || 0}}</text>
+                  </view>
+                  <view class="reply-btn" bindtap="showReplyInput" data-comment-id="{{item._id}}" data-author-name="{{item.authorName}}">
+                    <text class="reply-text">回复</text>
+                  </view>
+                </view>
+              </view>
+
+              <!-- Replies -->
+              <view wx:if="{{item.replies && item.replies.length > 0}}" class="replies-container">
+                <view wx:for="{{item.replies}}" wx:key="_id" wx:for-item="reply" wx:for-index="replyIndex" class="reply-item" wx:if="{{replyIndex < (item.showAllReplies ? item.replies.length : 3)}}">
+                  <image class="reply-avatar" src="{{reply.authorAvatar}}" mode="aspectFill" binderror="onAvatarError"></image>
+                  <view class="reply-main">
+                    <view class="reply-author">{{reply.authorName}}</view>
+                    <view class="reply-content">
+                      <text class="reply-to">回复@{{item.authorName}}：</text>
+                      <text>{{reply.content}}</text>
+                    </view>
+                    <view class="reply-footer">
+                      <view class="reply-time">{{reply.formattedCreateTime}}</view>
+                      <view class="reply-actions">
+                        <view class="like-section" bindtap="toggleLikeComment" data-comment-id="{{reply._id}}" data-liked="{{reply.liked}}">
+                          <image class="like-icon" src="{{reply.liked ? '../../images/liked.png' : '../../images/like.png'}}"></image>
+                          <text class="like-count">{{reply.likes || 0}}</text>
+                        </view>
+                        <view class="reply-btn" bindtap="showReplyInput" data-comment-id="{{item._id}}" data-author-name="{{reply.authorName}}">
+                          <text class="reply-text">回复</text>
+                        </view>
+                      </view>
+                    </view>
+                  </view>
+                </view>
+                
+                <view wx:if="{{item.replies.length > 3 && !item.showAllReplies}}" class="show-more-replies" bindtap="toggleShowAllReplies" data-comment-id="{{item._id}}">
+                  <text class="show-more-text">显示{{item.replies.length - 3}}条回复</text>
+                </view>
+                
+                <view wx:if="{{item.replies.length > 3 && item.showAllReplies}}" class="show-more-replies" bindtap="toggleShowAllReplies" data-comment-id="{{item._id}}">
+                  <text class="show-more-text">收起回复</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="no-comment-tip">
+            <view class="empty-icon">💬</view>
+            <view class="empty-text">暂无评论，快来抢沙发吧！</view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+  </block>
+  <block wx:else>
+    <view class="error-container">
+      <view class="error-icon">❌</view>
+      <view class="error-text">帖子加载失败或不存在</view>
+    </view>
+  </block>
+</view>
+
+<!-- Comment Input Box (已恢复完整内容) -->
+<view class="comment-input-area">
+  <view wx:if="{{replyToComment}}" class="reply-prompt">
+    <text class="reply-prompt-text">回复@{{replyToAuthor}}：</text>
+    <view class="cancel-reply" bindtap="cancelReply">
+      <text class="cancel-text">取消</text>
+    </view>
+  </view>
+  <view class="input-row">
+    <input 
+      class="comment-input" 
+      placeholder="{{replyToComment ? '' : '留下你的精彩评论...'}}" 
+      value="{{newComment}}"
+      bindinput="onCommentInput"
+      confirm-hold
+      adjust-position
+    />
+    <button class="submit-button" bindtap="onSubmitComment" disabled="{{isSubmitDisabled}}">发送</button>
+  </view>
+</view>
+
+<!-- Cloud Tip Modal -->
+<cloud-tip-modal showUploadTip="{{showUploadTip}}"></cloud-tip-modal>

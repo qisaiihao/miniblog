@@ -1,0 +1,42 @@
+/**app.wxss**/
+.container {
+  display: flex;
+  flex-direction: column;
+  /* Removed align-items: center; */
+  box-sizing: border-box;
+} 
+
+button {
+  background: initial;
+}
+
+button:focus{
+  outline: 0;
+}
+
+button::after{
+  border: none;
+}
+
+
+page {
+  background: #f6f6f6;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 0 20rpx; /* Added horizontal padding */
+  box-sizing: border-box; /* Ensure padding is included in total width */
+}
+
+/* 新增：按钮组样式 */
+.button-group {
+  display: flex;
+  align-items: center;
+}
+
+/* 新增：删除按钮样式 */
+.delete-button {
+  background-color: #e64340 !important; /* 使用 !important 强制覆盖默认样式 */
+  color: white !important;
+  margin-left: 10px; /* 与点赞按钮拉开距离 */
+}

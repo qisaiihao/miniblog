@@ -1,0 +1,138 @@
+<!--pages/profile/profile.wxml-->
+<view class="container">
+  <!-- Sidebar Mask -->
+  <view class="sidebar-mask" wx:if="{{isSidebarOpen}}" bindtap="toggleSidebar"></view>
+
+  <!-- Sidebar -->
+  <view class="sidebar {{isSidebarOpen ? 'open' : ''}}">
+    <view class="sidebar-header">
+      <image class="sidebar-avatar" src="{{userInfo.avatarUrl || '../../images/avatar.png'}}" mode="aspectFill" binderror="onAvatarError"></image>
+      <text class="sidebar-nickname">{{userInfo.nickName || '微信用户'}}</text>
+    </view>
+    <view class="sidebar-menu">
+      <view class="sidebar-item" bindtap="navigateToEditProfile">
+        <text>修改资料</text>
+      </view>
+      <view class="sidebar-item" bindtap="navigateToMyLikes">
+        <text>我的点赞</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Main Content -->
+  <view class="main-content">
+    <!-- 加载中骨架屏 -->
+    <view wx:if="{{isLoading && myPosts.length === 0}}" class="loading-container">
+      <view class="loading-text">加载中...</view>
+    </view>
+
+    <!-- 主内容始终渲染 -->
+    <view wx:else>
+      <!-- User Profile Card -->
+      <view class="profile-card profile-card-center">
+        <image src="../../images/icons/menu-icon-gray.svg" class="menu-btn-large" bindtap="toggleSidebar"></image>
+        <view class="profile-avatar-large">
+          <image src="{{userInfo.avatarUrl || '../../images/avatar.png'}}" mode="aspectFill" binderror="onAvatarError"></image>
+        </view>
+        <view class="profile-info-center">
+          <text class="profile-name-center">{{userInfo.nickName || '微信用户'}}</text>
+          <text class="profile-bio-center">{{userInfo.bio || '这个用户很懒,什么都还没留下...'}}</text>
+        </view>
+      </view>
+      <!-- 年龄和生日卡片 -->
+      <view class="profile-detail-card">
+        <text class="detail-item-inline">生日:{{userInfo.birthday ? userInfo.birthday : '未设置'}}</text>
+        <text class="detail-item-inline">年龄:{{userInfo.age ? userInfo.age + '岁' : '未知'}}</text>
+      </view>
+      <!-- My Posts Section -->
+      <view class="my-posts-section">
+        <view class="section-title">我发布的帖子</view>
+        <block wx:if="{{myPosts.length > 0}}">
+          <view wx:for="{{myPosts}}" wx:key="_id" class="post-card">
+            <!-- 作者信息 -->
+            <view class="author-info">
+              <image wx:if="{{item.authorAvatar}}" class="author-avatar" src="{{item.authorAvatar}}" mode="aspectFill" />
+              <text class="author-name">{{item.authorName}}</text>
+            </view>
+            <view class="post-header">
+              <text class="post-title">{{item.title}}</text>
+            </view>
+            <!-- 图片显示逻辑 -->
+            <view class="image-container">
+              <!-- 多图滑动 -->
+              <block wx:if="{{item.imageUrls && item.imageUrls.length > 1}}">
+                <swiper class="image-swiper" indicator-dots="true" circular="false" autoplay="false" style="width: 100%; height: {{swiperHeights[index]}}px;">
+                  <block wx:for="{{item.imageUrls}}" wx:for-item="imageUrl" wx:key="*this" wx:for-index="imgindex">
+                    <swiper-item>
+                      <image
+                        data-type="multi"
+                        id="profile-swiper-img-{{index}}-{{imgindex}}"
+                        class="post-image"
+                        src="{{imageUrl}}"
+                        mode="{{imgindex == 0 ? 'aspectFit' : 'aspectFill'}}"
+                        catch:tap="handlePreview"
+                        data-src="{{imageUrl}}"
+                        data-original-image-urls="{{item.originalImageUrls || item.imageUrls}}"
+                        binderror="onImageError"
+                        bindload="onImageLoad"
+                        data-postindex="{{index}}"
+                        data-imgindex="{{imgindex}}"
+                        lazy-load="{{true}}"
+                        style="width: 100%; height: 100%; display: block; object-fit: {{imgindex == 0 ? 'contain' : 'cover'}};"
+                      ></image>
+                    </swiper-item>
+                  </block>
+                </swiper>
+              </block>
+              <!-- 单图 -->
+              <block wx:elif="{{item.imageUrls && item.imageUrls.length === 1}}">
+                <image
+                  data-type="single"
+                  id="profile-single-img-{{index}}"
+                  class="post-image"
+                  src="{{item.imageUrls[0]}}"
+                  mode="aspectFit"
+                  catch:tap="handlePreview"
+                  data-src="{{item.imageUrls[0]}}"
+                  data-original-image-urls="{{item.originalImageUrls || item.imageUrls}}"
+                  binderror="onImageError"
+                  bindload="onImageLoad"
+                  data-postindex="{{index}}"
+                  data-imgindex="0"
+                  lazy-load="{{true}}"
+                  style="width: 100%; height: {{swiperHeights[index] !== undefined && swiperHeights[index] !== null ? swiperHeights[index] + 'px' : 'auto'}}; display: block;"
+                ></image>
+              </block>
+            </view>
+            <view class="post-content" wx:if="{{item.content}}">{{item.content}}</view>
+            <!-- 每个帖子自己的操作按钮 -->
+            <view class="post-actions" catch:tap="stopPropagation">
+              <view class="action-left">
+                <view class="action-item">
+                  <image src="../../images/liked.png" class="action-icon"></image>
+                  <text class="action-text">{{item.votes || 0}}</text>
+                </view>
+                <view class="action-item">
+                  <image src="../../images/icons/copy.png" class="action-icon"></image>
+                  <text class="action-text">{{item.commentCount || 0}}</text>
+                </view>
+              </view>
+              <view class="action-right">
+                <button class="delete-btn" size="mini" catch:tap="onDelete" data-postid="{{item._id}}" data-index="{{index}}">删除</button>
+              </view>
+            </view>
+          </view>
+          <!-- 加载更多提示 -->
+          <view wx:if="{{isLoading && myPosts.length > 0}}" class="loading-container">
+            <view class="loading-text">加载中...</view>
+          </view>
+          <!-- 占位空白，便于触发 onReachBottom -->
+          <view style="height: 200rpx;"></view>
+        </block>
+        <view wx:else class="empty-tip">
+          <text>你还没有发布过帖子哦～</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

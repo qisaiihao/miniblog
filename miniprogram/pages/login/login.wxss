@@ -1,0 +1,87 @@
+/* pages/login/login.wxss */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80rpx 40rpx;
+  height: 100vh; /* Make container take full viewport height */
+  overflow-y: auto; /* Enable vertical scrolling if content overflows */
+}
+
+.title {
+  font-size: 48rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: #999;
+  margin-bottom: 80rpx;
+}
+
+.avatar-wrapper {
+  margin-bottom: 60rpx;
+  width: 100%; /* Ensure it takes full width */
+}
+
+.avatar-button {
+  padding: 0; /* 移除内边距 */
+  border: none; /* 移除边框 */
+  background-color: transparent; /* 透明背景 */
+  line-height: 0; /* 移除行高 */
+  width: 100%; /* Ensure it takes full width */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 将圆形样式直接应用于图片 */
+.avatar {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 50%;
+}
+
+.nickname-wrapper {
+  width: 100%;
+  margin-bottom: 200rpx; /* Increased margin to give space for system UI */
+  border-bottom: 1px solid #f0f0f0;
+  padding: 20rpx 0;
+  display: flex;
+  align-items: center;
+}
+
+.nickname-wrapper text {
+  font-size: 32rpx;
+  margin-right: 30rpx;
+}
+
+.nickname-input {
+  flex: 1;
+  font-size: 32rpx;
+}
+
+.save-button {
+  width: 100%;
+  background-color: #07c160;
+  color: white;
+  font-size: 32rpx;
+}
+
+.avatar-placeholder {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+}
+
+.placeholder-text {
+  font-size: 80rpx;
+  color: #999;
+  font-weight: 100;
+}

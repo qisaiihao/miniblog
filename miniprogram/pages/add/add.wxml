@@ -1,0 +1,55 @@
+<!-- pages/add/add.wxml -->
+<view class="container">
+
+<!-- 1. 标题输入框 -->
+<input 
+  class="input-title" 
+  placeholder="请在这里输入标题" 
+  bindinput="onTitleInput"
+/>
+
+<!-- 2. 内容输入区域 -->
+<textarea 
+  class="textarea-content" 
+  placeholder="请在这里尽情创作吧..." 
+  bindinput="onContentInput"
+></textarea>
+
+<!-- 3. 图片上传与预览区域 -->
+<view class="uploader-container">
+  <view class="uploader-controls">
+    <button wx:if="{{imageList.length === 0}}" class="uploader-button" bindtap="handleChooseImage">
+      上传图片
+    </button>
+  </view>
+  
+  <!-- 显示多张图片预览 -->
+  <view wx:if="{{imageList.length > 0}}" class="image-preview-container">
+    <swiper wx:if="{{imageList.length > 1}}" class="image-swiper" indicator-dots="{{true}}" indicator-color="rgba(255, 255, 255, 0.6)" indicator-active-color="#ffffff" autoplay="{{false}}" circular="{{true}}">
+      <swiper-item wx:for="{{imageList}}" wx:key="index" class="swiper-item">
+        <image class="preview-image" src="{{item.previewUrl}}" mode="widthFix" binderror="onImageError"></image>
+        <view class="image-remove-btn" bindtap="removeImage" data-index="{{index}}">×</view>
+      </swiper-item>
+    </swiper>
+    <block wx:else>
+      <view class="image-preview-item">
+        <image class="preview-image" src="{{imageList[0].previewUrl}}" mode="widthFix" binderror="onImageError"></image>
+        <view class="image-remove-btn" bindtap="removeImage" data-index="0">×</view>
+      </view>
+    </block>
+    <view wx:if="{{imageList.length < 9}}" class="add-more-btn" bindtap="handleChooseImage">
+      <text>+</text>
+    </view>
+  </view>
+</view>
+
+<!-- 4. 页面底部的"确认发布"按钮 -->
+<button 
+  type="primary" 
+  class="submit-button" 
+  bindtap="submitPost"
+>
+  发布（可只上传图片）
+</button>
+
+</view> <!-- 这个 </view> 是用来闭合最外层的 <view class="container"> 的 -->

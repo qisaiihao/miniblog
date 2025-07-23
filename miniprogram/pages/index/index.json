@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "博客广场",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "skeleton": "/components/skeleton/skeleton"
+  }
+}

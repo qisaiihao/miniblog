@@ -1,0 +1,30 @@
+<!--pages/profile-edit/profile-edit.wxml-->
+<view class="container">
+  <view class="form-group">
+    <view class="label">头像</view>
+    <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+      <image class="avatar-preview" src="{{avatarUrl}}"></image>
+    </button>
+  </view>
+
+  <view class="form-group">
+    <label class="label" for="nickname">昵称</label>
+    <input id="nickname" class="input" type="nickname" placeholder="请输入昵称" value="{{nickName}}" bind:input="onNicknameInput"/>
+  </view>
+
+  <view class="form-group">
+    <label class="label">生日</label>
+    <picker mode="date" value="{{birthday}}" start="1920-01-01" end="{{endDate}}" bindchange="onBirthdayChange">
+      <view class="picker-display">
+        {{birthday || '请选择您的生日'}}
+      </view>
+    </picker>
+  </view>
+
+  <view class="form-group-column">
+    <label class="label">个性签名</label>
+    <textarea class="textarea" placeholder="介绍一下自己吧..." value="{{bio}}" bindinput="onBioInput" maxlength="100"></textarea>
+  </view>
+
+  <button class="save-button" bindtap="onSaveChanges" loading="{{isSaving}}">保存</button>
+</view>

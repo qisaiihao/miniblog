@@ -1,0 +1,122 @@
+<!-- index.wxml -->
+<view class="container">
+  <!-- 骨架屏只在首次加载时显示 -->
+  <view wx:if="{{isLoading && postList.length === 0}}">
+    <skeleton />
+  </view>
+
+  <!-- 主内容始终渲染 -->
+  <view wx:else>
+    <view wx:if="{{postList.length === 0 && !isLoading}}" class="empty-state">
+      <view class="empty-icon">📝</view>
+      <view class="empty-text">还没有帖子哦～</view>
+      <view class="empty-subtext">快来发布第一条帖子吧！</view>
+    </view>
+    <view wx:for="{{postList}}" wx:key="_id" class="post-item-wrapper">
+      <navigator 
+        class="post-item"
+        url="/pages/post-detail/post-detail?id={{item._id}}"
+        hover-class="post-item-active"
+      >
+        <view class="author-info">
+          <image wx:if="{{item.authorAvatar}}" class="author-avatar" src="{{item.authorAvatar}}" mode="aspectFill" binderror="onAvatarError" bindload="onAvatarLoad" data-postindex="{{index}}"></image>
+          <text class="author-name">{{item.authorName}}</text>
+        </view>
+      
+        <view class="post-title">{{item.title}}</view>
+        
+        <!-- 图片显示逻辑 -->
+        <view wx:if="{{(item.imageUrl || (item.imageUrls && item.imageUrls.length > 0))}}" class="image-container">
+          <block wx:if="{{item.imageUrls && item.imageUrls.length > 1}}">
+            <swiper class="image-swiper" indicator-dots="true" circular="false" autoplay="false" style="width: 100%; height: {{swiperHeights[index]}}px;">
+              <block wx:for="{{item.imageUrls}}" wx:for-item="imageUrl" wx:key="*this" wx:for-index="imgindex">
+                <swiper-item>
+                  <image
+                    data-type="multi"
+                    id="swiper-img-{{index}}-{{imgindex}}"
+                    class="post-image"
+                    src="{{imageUrl}}"
+                    mode="{{imgindex == 0 ? 'aspectFit' : 'aspectFill'}}"
+                    catch:tap="handlePreview"
+                    data-src="{{imageUrl}}"
+                    data-original-image-urls="{{item.originalImageUrls || item.imageUrls}}"
+                    binderror="onImageError"
+                    bindload="onImageLoad"
+                    data-postindex="{{index}}"
+                    data-imgindex="{{imgindex}}"
+                    lazy-load="{{true}}"
+                    style="width: 100%; height: 100%; display: block; object-fit: {{imgindex == 0 ? 'contain' : 'cover'}};"
+                  ></image>
+                </swiper-item>
+              </block>
+            </swiper>
+          </block>
+          <block wx:elif="{{item.imageUrls && item.imageUrls.length === 1}}">
+            <image 
+              data-type="single"
+              id="single-img-{{index}}"
+              class="post-image" 
+              src="{{item.imageUrls[0]}}" 
+              mode="aspectFit"
+              binderror="onImageError"
+              bindload="onImageLoad"
+              catch:tap="handlePreview"
+              data-src="{{item.imageUrls[0]}}"
+              data-original-image-urls="{{item.originalImageUrls && item.originalImageUrls.length > 0 ? item.originalImageUrls : [item.originalImageUrl || item.imageUrl]}}"
+              data-postindex="{{index}}"
+              data-imgindex="0"
+              lazy-load="{{true}}"
+              style="width: 100%; height: {{swiperHeights[index] ? swiperHeights[index] + 'px' : 'auto'}}; display: block;"
+            ></image>
+          </block>
+          <block wx:elif="{{item.imageUrl}}">
+            <image 
+              data-type="single"
+              id="single-img-{{index}}"
+              class="post-image" 
+              src="{{item.imageUrl}}" 
+              mode="aspectFit"
+              binderror="onImageError"
+              bindload="onImageLoad"
+              catch:tap="handlePreview"
+              data-src="{{item.imageUrl}}"
+              data-original-image-urls="{{item.originalImageUrls && item.originalImageUrls.length > 0 ? item.originalImageUrls : [item.originalImageUrl || item.imageUrl]}}"
+              data-postindex="{{index}}"
+              data-imgindex="0"
+              lazy-load="{{true}}"
+              style="width: 100%; height: {{swiperHeights[index] ? swiperHeights[index] + 'px' : 'auto'}}; display: block;"
+            ></image>
+          </block>
+        </view>
+          
+        <view class="post-content" wx:if="{{item.content}}">{{item.content}}</view>
+
+        <view class="vote-section">
+          <view class="actions-left">
+            <view class="vote-count {{item.isVoted ? 'voted' : ''}}">👍 {{item.votes || 0}}</view>
+            <view class="comment-count">💬 {{item.commentCount || 0}}</view>
+          </view>
+          <view class="button-group">
+            <button class="vote-button {{item.isVoted ? 'voted' : ''}}" size="mini" catch:tap="onVote" data-postid="{{item._id}}" data-index="{{index}}">
+              {{item.isVoted ? '已点赞' : '点赞'}}
+            </button>
+          </view>
+        </view>
+      </navigator>
+    </view>
+    <!-- 加载更多提示 -->
+    <view wx:if="{{isLoading && postList.length > 0}}" class="loading-more">
+      <view class="loading-text">加载中...</view>
+    </view>
+  </view>
+
+  <!-- 添加一个悬浮的发布按钮 -->
+  <navigator url="/pages/add/add" class="add-button">
+    <view>+</view>
+  </navigator>
+
+  <!-- 调试按钮 (仅在开发环境显示) -->
+  <view wx:if="{{false}}" class="debug-button" bindtap="testImageUrls">
+    <view>🐛</view>
+  </view>
+</view>

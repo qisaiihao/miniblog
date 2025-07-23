@@ -1,0 +1,25 @@
+<!--pages/login/login.wxml-->
+<view class="container">
+  <view class="title">欢迎来到博客社区</view>
+  <view class="subtitle">为了更好的体验，请设置你的头像和昵称</view>
+
+  <view class="avatar-wrapper">
+    <!-- 点击按钮选择头像 -->
+    <button class="avatar-button" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+      <!-- 如果 avatarFileID 或 localAvatarTempPath 存在，就显示头像 -->
+      <image wx:if="{{avatarFileID || localAvatarTempPath}}" class="avatar" src="{{avatarFileID || localAvatarTempPath}}"></image>
+      <!-- 否则，显示一个占位符 -->
+      <view wx:else class="avatar-placeholder">
+        <text class="placeholder-text">+</text>
+      </view>
+    </button>
+  </view>
+
+  <view class="nickname-wrapper">
+    <text>昵称</text>
+    <!-- input 框专门用于输入昵称 -->
+    <input class="nickname-input" type="nickname" placeholder="请输入你的昵称" bind:input="onNicknameInput"/>
+  </view>
+
+  <button class="save-button" bind:tap="onSaveProfile" disabled="{{!openidReady || isSaving}}">进入社区</button>
+</view>

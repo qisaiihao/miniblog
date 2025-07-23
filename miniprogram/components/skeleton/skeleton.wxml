@@ -1,0 +1,48 @@
+<!--components/skeleton/skeleton.wxml-->
+<view class="skeleton-wrapper">
+  <view class="skeleton-item">
+    <view class="skeleton-author">
+      <view class="skeleton-avatar skeleton-animate"></view>
+      <view class="skeleton-name skeleton-animate"></view>
+    </view>
+    <view class="skeleton-title skeleton-animate"></view>
+    <view class="skeleton-content skeleton-animate"></view>
+    <view class="skeleton-content skeleton-animate" style="width: 60%;"></view>
+  </view>
+  <view class="skeleton-item">
+    <view class="skeleton-author">
+      <view class="skeleton-avatar skeleton-animate"></view>
+      <view class="skeleton-name skeleton-animate"></view>
+    </view>
+    <view class="skeleton-title skeleton-animate"></view>
+    <view class="skeleton-content skeleton-animate"></view>
+    <view class="skeleton-content skeleton-animate" style="width: 60%;"></view>
+  </view>
+  <view class="skeleton-item">
+    <view class="skeleton-author">
+      <view class="skeleton-avatar skeleton-animate"></view>
+      <view class="skeleton-name skeleton-animate"></view>
+    </view>
+    <view class="skeleton-title skeleton-animate"></view>
+    <view class="skeleton-content skeleton-animate"></view>
+    <view class="skeleton-content skeleton-animate" style="width: 60%;"></view>
+  </view>
+  <view class="skeleton-item">
+    <view class="skeleton-author">
+      <view class="skeleton-avatar skeleton-animate"></view>
+      <view class="skeleton-name skeleton-animate"></view>
+    </view>
+    <view class="skeleton-title skeleton-animate"></view>
+    <view class="skeleton-content skeleton-animate"></view>
+    <view class="skeleton-content skeleton-animate" style="width: 60%;"></view>
+  </view>
+  <view class="skeleton-item">
+    <view class="skeleton-author">
+      <view class="skeleton-avatar skeleton-animate"></view>
+      <view class="skeleton-name skeleton-animate"></view>
+    </view>
+    <view class="skeleton-title skeleton-animate"></view>
+    <view class="skeleton-content skeleton-animate"></view>
+    <view class="skeleton-content skeleton-animate" style="width: 60%;"></view>
+  </view>
+</view>

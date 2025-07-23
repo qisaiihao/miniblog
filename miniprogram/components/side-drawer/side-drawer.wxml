@@ -1,0 +1,7 @@
+<!--components/side-drawer/side-drawer.wxml-->
+<view class="drawer-mask {{show ? 'show' : ''}}" bindtap="closeDrawer" catchtouchmove="doNothing">
+  <view class="drawer-content {{show ? 'show' : ''}}" catchtap="doNothing">
+    <!-- 抽屉内容插槽 -->
+    <slot></slot>
+  </view>
+</view>

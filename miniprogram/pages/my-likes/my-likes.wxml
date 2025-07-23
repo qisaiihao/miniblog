@@ -1,0 +1,109 @@
+<!--pages/my-likes/my-likes.wxml-->
+<view class="container">
+  <view class="header">
+    <text class="header-title">我的点赞</text>
+  </view>
+
+  <!-- 骨架屏/加载中 -->
+  <view wx:if="{{isLoading && likedPosts.length === 0}}" class="loading-indicator">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 主内容始终渲染 -->
+  <view wx:else>
+    <view wx:if="{{likedPosts.length > 0}}" class="post-list">
+      <view wx:for="{{likedPosts}}" wx:key="_id" class="post-item" bindtap="navigateToPost" data-id="{{item._id}}">
+        <!-- Author Info -->
+        <view class="author-info">
+          <image 
+            class="author-avatar" 
+            src="{{item.authorAvatar || '../../images/icons/avatar.png'}}" 
+            mode="aspectFill"
+            binderror="onAvatarError"
+          ></image>
+          <text class="author-name">{{item.authorName}}</text>
+        </view>
+        
+        <view class="post-title">{{item.title}}</view>
+        <view class="post-content-preview">{{item.content}}</view>
+        
+        <!-- 图片显示逻辑 -->
+        <view wx:if="{{(item.imageUrl || (item.imageUrls && item.imageUrls.length > 0))}}" class="image-container">
+          <!-- 单张图片显示 -->
+          <block wx:if="{{item.imageUrls && item.imageUrls.length === 1}}">
+            <image
+              data-type="single"
+              id="likes-single-img-{{index}}"
+              class="post-image"
+              src="{{item.imageUrls[0]}}"
+              mode="aspectFit"
+              binderror="onImageError"
+              bindload="onImageLoad"
+              catch:tap="handlePreview"
+              data-src="{{item.imageUrls[0]}}"
+              data-original-image-urls="{{item.originalImageUrls || item.imageUrls}}"
+              data-postindex="{{index}}"
+              data-imgindex="0"
+              lazy-load="{{true}}"
+              style="width: 100%; height: {{swiperHeights[index] !== undefined && swiperHeights[index] !== null ? swiperHeights[index] + 'px' : 'auto'}}; display: block;"
+            ></image>
+          </block>
+          <!-- 多张图片 swiper -->
+          <block wx:elif="{{item.imageUrls && item.imageUrls.length > 1}}">
+            <swiper class="image-swiper swiper-bg-white" indicator-dots="true" circular="false" autoplay="false" style="width: 100%; height: {{swiperHeights[index]}}px;">
+              <block wx:for="{{item.imageUrls}}" wx:for-item="imageUrl" wx:key="*this" wx:for-index="imgindex">
+                <swiper-item>
+                  <image
+                    data-type="multi"
+                    id="likes-swiper-img-{{index}}-{{imgindex}}"
+                    class="post-image"
+                    src="{{imageUrl}}"
+                    mode="{{imgindex == 0 ? 'aspectFit' : 'aspectFill'}}"
+                    catch:tap="handlePreview"
+                    data-src="{{imageUrl}}"
+                    data-original-image-urls="{{item.originalImageUrls || item.imageUrls}}"
+                    data-postindex="{{index}}"
+                    data-imgindex="{{imgindex}}"
+                    lazy-load="{{true}}"
+                    style="width: 100%; height: 100%; display: block; object-fit: {{imgindex == 0 ? 'contain' : 'cover'}};"
+                  ></image>
+                </swiper-item>
+              </block>
+            </swiper>
+          </block>
+          <!-- 兼容老数据单图 -->
+          <block wx:elif="{{item.imageUrl && (!item.imageUrls || item.imageUrls.length === 0)}}">
+            <image 
+              class="post-image" 
+              src="{{item.imageUrl}}" 
+              mode="widthFix"
+              binderror="onImageError"
+              bindload="onImageLoad"
+              catch:tap="handlePreview"
+              data-src="{{item.imageUrl}}"
+              data-original-image-urls="{{item.originalImageUrl || item.imageUrl}}"
+              data-postindex="{{index}}"
+              data-imgindex="0"
+              lazy-load="{{true}}"
+              style="width: 100%; height: auto; display: block;"
+            ></image>
+          </block>
+        </view>
+
+        <!-- Post Meta -->
+        <view class="post-meta">
+          <text class="post-time">{{item.formattedCreateTime}}</text>
+        </view>
+      </view>
+      <!-- 加载更多提示 -->
+      <view wx:if="{{isLoading && likedPosts.length > 0}}" class="loading-indicator">
+        <text>加载中...</text>
+      </view>
+    </view>
+    <view wx:else class="empty-tip">
+      <view class="empty-icon">👍</view>
+      <view class="empty-text">你还没有点赞任何帖子哦～</view>
+      <view class="empty-subtext">去首页发现精彩内容吧！</view>
+    </view>
+  </view>
+</view>
