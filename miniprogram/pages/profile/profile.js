@@ -11,8 +11,9 @@ Page({
     page: 0,
     hasMore: true,
     PAGE_SIZE: PAGE_SIZE,
-    swiperHeights: {}, // 每个帖子的swiper高度，完全跟随第一张图片
-    swiperFixedHeight: null, // 仅在onLoad时计算3:4高度
+    swiperHeights: {}, // 多图swiper高度
+    imageClampHeights: {}, // 单图瘦高图钳制高度
+    _hasFirstShow: false, // 新增：标记是否首次进入
   },
 
   onLoad: function (options) {
@@ -24,6 +25,37 @@ Page({
   },
 
   onShow: function () {
+    // 只在发帖后自动刷新，其他情况不刷新
+    try {
+      const shouldRefresh = wx.getStorageSync('shouldRefreshProfile');
+      if (shouldRefresh) {
+        wx.setStorageSync('shouldRefreshProfile', false);
+        this.setData({
+          myPosts: [],
+          page: 0,
+          hasMore: true,
+          swiperHeights: {},
+          imageClampHeights: {},
+        }, () => {
+          this.loadMyPosts();
+        });
+        return;
+      }
+    } catch (e) {}
+    // 新增：首次进入自动刷新
+    if (!this.data._hasFirstShow) {
+      this.setData({
+        myPosts: [],
+        page: 0,
+        hasMore: true,
+        swiperHeights: {},
+        imageClampHeights: {},
+        _hasFirstShow: true
+      }, () => {
+        this.loadMyPosts();
+      });
+      return;
+    }
     if (this.data.myPosts.length === 0) {
       this.loadMyPosts();
     }
@@ -34,7 +66,9 @@ Page({
     this.setData({
       myPosts: [],
       page: 0,
-      hasMore: true
+      hasMore: true,
+      swiperHeights: {},
+      imageClampHeights: {},
     });
     this.loadMyPosts(() => {
       wx.stopPullDownRefresh();
@@ -55,7 +89,9 @@ Page({
     this.setData({
       userInfo: {},
       myPosts: [],
-      isLoading: true
+      isLoading: true,
+      swiperHeights: {},
+      imageClampHeights: {},
     });
     // 重新获取数据
     this.checkLoginAndFetchData();
@@ -219,6 +255,10 @@ Page({
                 wx.showToast({ title: '删除成功' });
                 const newList = that.data.myPosts.filter(post => post._id !== postId);
                 that.setData({ myPosts: newList });
+                // 新增：删除成功后设置首页需要刷新标记
+                try {
+                  wx.setStorageSync('shouldRefreshIndex', true);
+                } catch (e) {}
               } else {
                 wx.showToast({ title: '删除失败', icon: 'none' });
               }
@@ -258,11 +298,9 @@ Page({
 
   // 图片加载错误处理
   onImageError: function(e) {
-    console.error('图片加载失败:', e);
+    console.error('图片加载失败:', e.detail);
     const { src } = e.detail;
     console.error('失败的图片URL:', src);
-    
-    // 获取当前图片的上下文信息
     const { postindex, imgindex } = e.currentTarget.dataset;
     if (postindex !== undefined && imgindex !== undefined) {
       const post = this.data.myPosts[postindex];
@@ -273,7 +311,6 @@ Page({
         imageUrl: src
       });
     }
-    
     // 不显示toast，避免频繁弹窗，但记录错误
     console.error('图片加载失败详情:', {
       error: e.detail,
@@ -282,49 +319,47 @@ Page({
     });
   },
 
+  // 统一图片自适应/钳制逻辑
   onImageLoad: function(e) {
-    const { postindex, imgindex, type } = e.currentTarget.dataset;
+    const { postindex, imgindex = 0, type } = e.currentTarget.dataset;
     const { width, height } = e.detail;
-    if (type === 'single' && width > 0 && height > 0) {
-      // 单图：只对特别瘦高的图片做9:16钳制，其它auto
-      const minRatio = 9 / 16;
-      const actualRatio = width / height;
-      if (actualRatio < minRatio) {
-        const query = wx.createSelectorQuery();
-        query.select(`#profile-single-img-${postindex}`).boundingClientRect(rect => {
-          if (rect && rect.width) {
-            const displayHeight = rect.width / minRatio;
-            this.setData({
-              [`swiperHeights[${postindex}]`]: displayHeight
-            });
-          }
-        }).exec();
-      } else {
-        this.setData({
-          [`swiperHeights[${postindex}]`]: null
-        });
-      }
-    }
-    if (type === 'multi' && imgindex === 0 && width > 0 && height > 0) {
-      // 多图首图：9:16~16:9钳制
-      const query = wx.createSelectorQuery();
+    if (!width || !height) return;
+
+    // 多图
+    if (type === 'multi' && imgindex === 0) {
+      const query = wx.createSelectorQuery().in(this);
       query.select(`#profile-swiper-img-${postindex}-0`).boundingClientRect(rect => {
         if (rect && rect.width) {
+          const containerWidth = rect.width;
+          const actualRatio = width / height;
           const maxRatio = 16 / 9;
           const minRatio = 9 / 16;
-          const actualRatio = width / height;
           let targetRatio = actualRatio;
-          if (actualRatio > maxRatio) {
-            targetRatio = maxRatio;
-          } else if (actualRatio < minRatio) {
-            targetRatio = minRatio;
+          if (actualRatio > maxRatio) targetRatio = maxRatio;
+          else if (actualRatio < minRatio) targetRatio = minRatio;
+          const displayHeight = containerWidth / targetRatio;
+          if (this.data.swiperHeights[postindex] !== displayHeight) {
+            this.setData({ [`swiperHeights[${postindex}]`]: displayHeight });
           }
-          const displayHeight = rect.width / targetRatio;
-      this.setData({
-        [`swiperHeights[${postindex}]`]: displayHeight
-      });
         }
       }).exec();
+    }
+    // 单图
+    if (type === 'single') {
+      const actualRatio = width / height;
+      const minRatio = 9 / 16;
+      if (actualRatio < minRatio) {
+        const query = wx.createSelectorQuery().in(this);
+        query.select(`#profile-single-img-${postindex}`).boundingClientRect(rect => {
+          if (rect && rect.width) {
+            const containerWidth = rect.width;
+            const displayHeight = containerWidth / minRatio;
+            if (this.data.imageClampHeights[postindex] !== displayHeight) {
+              this.setData({ [`imageClampHeights.${postindex}`]: displayHeight });
+            }
+          }
+        }).exec();
+      }
     }
   },
 

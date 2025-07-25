@@ -25,67 +25,48 @@
       
         <view class="post-title">{{item.title}}</view>
         
-        <!-- 图片显示逻辑 -->
-        <view wx:if="{{(item.imageUrl || (item.imageUrls && item.imageUrls.length > 0))}}" class="image-container">
-          <block wx:if="{{item.imageUrls && item.imageUrls.length > 1}}">
-            <swiper class="image-swiper" indicator-dots="true" circular="false" autoplay="false" style="width: 100%; height: {{swiperHeights[index]}}px;">
-              <block wx:for="{{item.imageUrls}}" wx:for-item="imageUrl" wx:key="*this" wx:for-index="imgindex">
+        <!-- 图片显示逻辑（迁移自详情页，支持单图瘦高图钳制和多图swiper高度） -->
+        <view wx:if="{{(item.imageUrl || (item.imageUrls && item.imageUrls.length > 0))}}" class="image-container" id="image-container-{{index}}">
+          <!-- 单张图片 -->
+          <block wx:if="{{item.imageUrls && item.imageUrls.length === 1}}">
+            <image
+              id="single-image-{{item._id}}"
+              src="{{item.imageUrls[0]}}"
+              mode="{{imageClampHeights[item._id] ? 'aspectFill' : 'widthFix'}}"
+              style="width: 100%; height: {{imageClampHeights[item._id] ? imageClampHeights[item._id] + 'px' : 'auto'}}; object-fit: {{imageClampHeights[item._id] ? 'cover' : 'contain'}}; background-color: #f0f0f0;"
+              bindload="onImageLoad"
+              data-postid="{{item._id}}"
+              data-type="single"
+              binderror="onImageError"
+              catch:tap="handlePreview"
+              data-src="{{item.imageUrls[0]}}"
+              data-original-image-urls="{{item.originalImageUrls || item.imageUrls}}"
+              lazy-load="{{true}}"
+            />
+          </block>
+          <!-- 多张图片 -->
+          <block wx:elif="{{item.imageUrls && item.imageUrls.length > 1}}">
+            <swiper id="swiper-{{item._id}}" class="image-swiper" indicator-dots="true" circular="true" style="width: 100%; height: {{swiperHeights[index] ? swiperHeights[index] + 'px' : '220px'}};">
+              <block wx:for="{{item.imageUrls}}" wx:for-item="img" wx:for-index="imgindex">
                 <swiper-item>
                   <image
-                    data-type="multi"
-                    id="swiper-img-{{index}}-{{imgindex}}"
-                    class="post-image"
-                    src="{{imageUrl}}"
-                    mode="{{imgindex == 0 ? 'aspectFit' : 'aspectFill'}}"
-                    catch:tap="handlePreview"
-                    data-src="{{imageUrl}}"
-                    data-original-image-urls="{{item.originalImageUrls || item.imageUrls}}"
-                    binderror="onImageError"
+                    src="{{img}}"
+                    mode="aspectFill"
                     bindload="onImageLoad"
+                    data-postid="{{item._id}}"
                     data-postindex="{{index}}"
                     data-imgindex="{{imgindex}}"
+                    data-type="multi"
+                    binderror="onImageError"
+                    catch:tap="handlePreview"
+                    data-src="{{img}}"
+                    data-original-image-urls="{{item.originalImageUrls || item.imageUrls}}"
                     lazy-load="{{true}}"
-                    style="width: 100%; height: 100%; display: block; object-fit: {{imgindex == 0 ? 'contain' : 'cover'}};"
-                  ></image>
+                    style="width: 100%; height: 100%; object-fit: cover; background-color: #f0f0f0;"
+                  />
                 </swiper-item>
               </block>
             </swiper>
-          </block>
-          <block wx:elif="{{item.imageUrls && item.imageUrls.length === 1}}">
-            <image 
-              data-type="single"
-              id="single-img-{{index}}"
-              class="post-image" 
-              src="{{item.imageUrls[0]}}" 
-              mode="aspectFit"
-              binderror="onImageError"
-              bindload="onImageLoad"
-              catch:tap="handlePreview"
-              data-src="{{item.imageUrls[0]}}"
-              data-original-image-urls="{{item.originalImageUrls && item.originalImageUrls.length > 0 ? item.originalImageUrls : [item.originalImageUrl || item.imageUrl]}}"
-              data-postindex="{{index}}"
-              data-imgindex="0"
-              lazy-load="{{true}}"
-              style="width: 100%; height: {{swiperHeights[index] ? swiperHeights[index] + 'px' : 'auto'}}; display: block;"
-            ></image>
-          </block>
-          <block wx:elif="{{item.imageUrl}}">
-            <image 
-              data-type="single"
-              id="single-img-{{index}}"
-              class="post-image" 
-              src="{{item.imageUrl}}" 
-              mode="aspectFit"
-              binderror="onImageError"
-              bindload="onImageLoad"
-              catch:tap="handlePreview"
-              data-src="{{item.imageUrl}}"
-              data-original-image-urls="{{item.originalImageUrls && item.originalImageUrls.length > 0 ? item.originalImageUrls : [item.originalImageUrl || item.imageUrl]}}"
-              data-postindex="{{index}}"
-              data-imgindex="0"
-              lazy-load="{{true}}"
-              style="width: 100%; height: {{swiperHeights[index] ? swiperHeights[index] + 'px' : 'auto'}}; display: block;"
-            ></image>
           </block>
         </view>
           

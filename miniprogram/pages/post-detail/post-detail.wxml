@@ -18,53 +18,45 @@
       <!-- 图片显示逻辑 (已修正) -->
       <view wx:if="{{(post.imageUrl || (post.imageUrls && post.imageUrls.length > 0))}}" class="image-container" id="detail-image-container">
         <!-- 单张图片 -->
-        <block wx:if="{{post.imageUrl && (!post.imageUrls || post.imageUrls.length <= 1)}}">
-          <swiper
-            class="image-swiper"
-            indicator-dots="{{false}}"
-            style="width: 100%; height: {{imageContainerHeight ? imageContainerHeight + 'px' : '220px'}};"
-          >
-            <swiper-item>
-              <image 
-                class="post-image" 
-                src="{{post.imageUrl}}" 
-                mode="aspectFit"
-                bindload="onImageLoad"
-                catch:tap="handlePreview"
-                data-type="single"
-                data-imgindex="0"
-                data-src="{{post.imageUrl}}"
-                data-original-image-urls="{{post.originalImageUrl || post.imageUrl}}"
-                style="width: 100%; height: 100%;"
-              ></image>
-            </swiper-item>
-          </swiper>
+        <block wx:if="{{post.imageUrls && post.imageUrls.length === 1}}">
+          <image
+            id="single-image-{{post._id}}"
+            src="{{post.imageUrls[0]}}"
+            mode="{{imageClampHeights[post._id] ? 'aspectFill' : 'widthFix'}}"
+            style="width: 100%; height: {{imageClampHeights[post._id] ? imageClampHeights[post._id] + 'px' : 'auto'}}; object-fit: {{imageClampHeights[post._id] ? 'cover' : 'contain'}}; background-color: #f0f0f0;"
+            bindload="onImageLoad"
+            data-postid="{{post._id}}"
+            data-type="single"
+            binderror="onImageError"
+            catch:tap="handlePreview"
+            data-src="{{post.imageUrls[0]}}"
+            data-original-image-urls="{{post.originalImageUrls || post.imageUrls}}"
+            lazy-load="{{true}}"
+          />
         </block>
         
          <!-- 多张图片 (★ 此处为核心修改) -->
          <block wx:elif="{{post.imageUrls && post.imageUrls.length > 1}}">
-          <swiper
-            class="image-swiper"
-            indicator-dots="{{true}}"
-            indicator-color="rgba(0, 0, 0, .2)"
-            indicator-active-color="#000000"
-            circular="true"
-            style="width: 100%; height: {{imageContainerHeight ? imageContainerHeight + 'px' : '220px'}};"
-          >
-            <swiper-item wx:for="{{post.imageUrls}}" wx:for-item="imageUrl" wx:key="*this" wx:for-index="imgindex">
-              <image
-                class="post-image"
-                src="{{imageUrl}}"
-                mode="aspectFit"
-                bindload="onImageLoad"
-                catch:tap="handlePreview"
-                data-type="multi"
-                data-imgindex="{{imgindex}}"
-                data-src="{{imageUrl}}"
-                data-original-image-urls="{{post.originalImageUrls || post.imageUrls}}"
-                style="width: 100%; height: 100%;"
-              ></image>
-            </swiper-item>
+          <swiper id="swiper-{{post._id}}" class="image-swiper" indicator-dots="true" circular="true" style="width: 100%; height: {{swiperHeights[0] ? swiperHeights[0] + 'px' : '220px'}};">
+            <block wx:for="{{post.imageUrls}}" wx:for-item="img" wx:for-index="imgindex">
+              <swiper-item>
+                <image
+                  src="{{img}}"
+                  mode="aspectFill"
+                  bindload="onImageLoad"
+                  data-postid="{{post._id}}"
+                  data-postindex="0"
+                  data-imgindex="{{imgindex}}"
+                  data-type="multi"
+                  binderror="onImageError"
+                  catch:tap="handlePreview"
+                  data-src="{{img}}"
+                  data-original-image-urls="{{post.originalImageUrls || post.imageUrls}}"
+                  lazy-load="{{true}}"
+                  style="width: 100%; height: 100%; object-fit: cover; background-color: #f0f0f0;"
+                />
+              </swiper-item>
+            </block>
           </swiper>
           <!-- ★ 注意：之前在这里的自定义指示器 <view> 已经被删除了！ -->
         </block>

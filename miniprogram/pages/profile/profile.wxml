@@ -30,7 +30,7 @@
     <view wx:else>
       <!-- User Profile Card -->
       <view class="profile-card profile-card-center">
-        <image src="../../images/icons/menu-icon-gray.svg" class="menu-btn-large" bindtap="toggleSidebar"></image>
+        <image src="../../images/icons/menu-icon.svg" class="menu-btn-large" bindtap="toggleSidebar" style="z-index:101;"></image>
         <view class="profile-avatar-large">
           <image src="{{userInfo.avatarUrl || '../../images/avatar.png'}}" mode="aspectFill" binderror="onAvatarError"></image>
         </view>
@@ -61,15 +61,14 @@
             <view class="image-container">
               <!-- 多图滑动 -->
               <block wx:if="{{item.imageUrls && item.imageUrls.length > 1}}">
-                <swiper class="image-swiper" indicator-dots="true" circular="false" autoplay="false" style="width: 100%; height: {{swiperHeights[index]}}px;">
+                <swiper id="profile-swiper-{{index}}" class="image-swiper" indicator-dots="true" circular="false" autoplay="false" style="width: 100%; height: {{swiperHeights[index] ? swiperHeights[index] + 'px' : '220px'}};">
                   <block wx:for="{{item.imageUrls}}" wx:for-item="imageUrl" wx:key="*this" wx:for-index="imgindex">
                     <swiper-item>
                       <image
-                        data-type="multi"
                         id="profile-swiper-img-{{index}}-{{imgindex}}"
                         class="post-image"
                         src="{{imageUrl}}"
-                        mode="{{imgindex == 0 ? 'aspectFit' : 'aspectFill'}}"
+                        mode="aspectFill"
                         catch:tap="handlePreview"
                         data-src="{{imageUrl}}"
                         data-original-image-urls="{{item.originalImageUrls || item.imageUrls}}"
@@ -77,8 +76,9 @@
                         bindload="onImageLoad"
                         data-postindex="{{index}}"
                         data-imgindex="{{imgindex}}"
+                        data-type="multi"
                         lazy-load="{{true}}"
-                        style="width: 100%; height: 100%; display: block; object-fit: {{imgindex == 0 ? 'contain' : 'cover'}};"
+                        style="width: 100%; height: 100%; object-fit: cover; background-color: #f0f0f0;"
                       ></image>
                     </swiper-item>
                   </block>
@@ -87,11 +87,10 @@
               <!-- 单图 -->
               <block wx:elif="{{item.imageUrls && item.imageUrls.length === 1}}">
                 <image
-                  data-type="single"
                   id="profile-single-img-{{index}}"
                   class="post-image"
                   src="{{item.imageUrls[0]}}"
-                  mode="aspectFit"
+                  mode="{{imageClampHeights[index] ? 'aspectFill' : 'widthFix'}}"
                   catch:tap="handlePreview"
                   data-src="{{item.imageUrls[0]}}"
                   data-original-image-urls="{{item.originalImageUrls || item.imageUrls}}"
@@ -99,8 +98,9 @@
                   bindload="onImageLoad"
                   data-postindex="{{index}}"
                   data-imgindex="0"
+                  data-type="single"
                   lazy-load="{{true}}"
-                  style="width: 100%; height: {{swiperHeights[index] !== undefined && swiperHeights[index] !== null ? swiperHeights[index] + 'px' : 'auto'}}; display: block;"
+                  style="width: 100%; height: {{imageClampHeights[index] ? imageClampHeights[index] + 'px' : 'auto'}}; object-fit: {{imageClampHeights[index] ? 'cover' : 'contain'}}; background-color: #f0f0f0;"
                 ></image>
               </block>
             </view>

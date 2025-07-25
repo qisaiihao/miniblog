@@ -15,6 +15,8 @@ Page({
     votingInProgress: false,
     // --- 已修正和新增的 data ---
     imageContainerHeight: null, // 用于控制swiper的高度
+    swiperHeights: {}, // 多图swiper高度
+    imageClampHeights: {}, // 单图瘦高图钳制高度
   },
 
   onLoad: function (options) {
@@ -136,43 +138,46 @@ Page({
 
   // --- Swiper 和图片高度计算 ---
   onImageLoad: function(e) {
-    const { type, imgindex = 0 } = e.currentTarget.dataset;
+    const { postid, postindex = 0, imgindex = 0, type } = e.currentTarget.dataset;
     const { width: originalWidth, height: originalHeight } = e.detail;
-
-    if (imgindex !== 0) return;
-    if (originalWidth === 0 || originalHeight === 0) return;
-    
-    // 查询最外层的图片容器，它的宽度是稳定的
-    const selector = '#detail-image-container'; 
-    wx.createSelectorQuery().in(this)
-      .select(selector)
-      .boundingClientRect(rect => {
+    if (!originalWidth || !originalHeight) return;
+  
+    // 多图
+    if (type === 'multi' && imgindex === 0) {
+      const query = wx.createSelectorQuery().in(this);
+      query.select(`#swiper-${postid}`).boundingClientRect(rect => {
         if (rect && rect.width) {
           const containerWidth = rect.width;
           const actualRatio = originalWidth / originalHeight;
-          let finalHeight;
-
-          if (type === 'single') {
-            const minRatio = 9 / 16;
-            if (actualRatio < minRatio) {
-              finalHeight = containerWidth / minRatio;
-            } else {
-              finalHeight = containerWidth / actualRatio;
-            }
-          } else { // type === 'multi'
-            const maxRatio = 16 / 9;
-            const minRatio = 9 / 16;
-            let targetRatio = actualRatio;
-            if (actualRatio > maxRatio) {
-              targetRatio = maxRatio;
-            } else if (actualRatio < minRatio) {
-              targetRatio = minRatio;
-            }
-            finalHeight = containerWidth / targetRatio;
+          const maxRatio = 16 / 9;
+          const minRatio = 9 / 16;
+          let targetRatio = actualRatio;
+          if (actualRatio > maxRatio) targetRatio = maxRatio;
+          else if (actualRatio < minRatio) targetRatio = minRatio;
+          const displayHeight = containerWidth / targetRatio;
+          if (this.data.swiperHeights[postindex] !== displayHeight) {
+            this.setData({ [`swiperHeights[${postindex}]`]: displayHeight });
           }
-          this.setData({ imageContainerHeight: finalHeight });
         }
       }).exec();
+    }
+    // 单图
+    if (type === 'single') {
+      const actualRatio = originalWidth / originalHeight;
+      const minRatio = 9 / 16;
+      if (actualRatio < minRatio) {
+        const query = wx.createSelectorQuery().in(this);
+        query.select(`#single-image-${postid}`).boundingClientRect(rect => {
+          if (rect && rect.width) {
+            const containerWidth = rect.width;
+            const displayHeight = containerWidth / minRatio;
+            if (this.data.imageClampHeights[postid] !== displayHeight) {
+              this.setData({ [`imageClampHeights.${postid}`]: displayHeight });
+            }
+          }
+        }).exec();
+      }
+    }
   },
 
   

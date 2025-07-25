@@ -259,6 +259,11 @@ Page({
   publishSuccess: function(res) {
     wx.hideLoading();
     wx.showToast({ title: '发布成功！' });
+    // 新增：设置首页和我的主页需要刷新标记
+    try {
+      wx.setStorageSync('shouldRefreshIndex', true);
+      wx.setStorageSync('shouldRefreshProfile', true);
+    } catch (e) {}
     wx.navigateBack({ delta: 1 });
   },
 
